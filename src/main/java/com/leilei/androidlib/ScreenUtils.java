@@ -2,6 +2,8 @@ package com.leilei.androidlib;
 
 import android.util.DisplayMetrics;
 
+import java.lang.reflect.Field;
+
 /**
  * Created by leilei on 2017/7/27.
  */
@@ -53,4 +55,25 @@ public class ScreenUtils {
         }
         return (int) (px / DESITY);
     }
+
+    public static int getStateBarHeight() {
+        Class<?> c = null;
+        Object obj = null;
+        Field field = null;
+        int x = 0;
+        int sbar = 0;
+        try {
+            c = Class.forName("com.android.internal.R$dimen");
+            obj = c.newInstance();
+            field = c.getField("status_bar_height");
+            x = Integer.parseInt(field.get(obj).toString());
+            sbar = Utils.mContext.getResources().getDimensionPixelSize(x);
+            return sbar;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
 }
