@@ -35,7 +35,7 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
     private String TAG = "UncaughtExceptionHandler";
 
     private static Context mContext;
-    private Map<String, String> infos = new HashMap<String, String>();
+    private Map<String, String> infos = new HashMap();
 
     //用于格式化日期,作为日志文件名的一部分
     private DateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
@@ -99,15 +99,16 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
         sb.append(result);
         try {
             String time = formatter.format(new Date());
-            String fileName = "crash-" + time + ".html";
+            String fileName = "crash-" + time + ".txt";
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                 ///这里修改了保存路径,如果不能保存到sdcard,则保存到data/data应用目录下
                 String path = Environment.getExternalStorageDirectory().getPath() + "/" + EXCEPTION_PATH;
                 File dir = new File(path);
                 if (!dir.exists()) {
                     dir.mkdirs();
+                    dir.mkdir();
                 }
-                FileOutputStream fos = new FileOutputStream(path + fileName);
+                FileOutputStream fos = new FileOutputStream(new File(dir, fileName));
                 fos.write(sb.toString().getBytes());
                 //发送给开发人员
                 sendCrashLog2PM(path + fileName);

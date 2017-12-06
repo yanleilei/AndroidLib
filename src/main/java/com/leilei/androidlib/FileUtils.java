@@ -1,5 +1,6 @@
 package com.leilei.androidlib;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 
 import java.io.ByteArrayInputStream;
@@ -41,11 +42,36 @@ public class FileUtils {
     }
 
     public static void copyFile(String src, String des) throws IOException {
-        copyStream(new FileInputStream(src), new FileOutputStream(des));
+        File fileSrc = new File(src);
+        File fileDes = new File(des);
+        if (fileSrc.isDirectory()) {
+            copyFile(fileSrc, fileDes);
+        } else {
+            copyStream(new FileInputStream(src), new FileOutputStream(des));
+        }
+
     }
 
     public static void copyFile(File src, File des) throws IOException {
-        copyStream(new FileInputStream(src), new FileOutputStream(des));
+        if (src.isDirectory()) {
+            des.mkdir();
+            des.mkdirs();
+            File[] files = src.listFiles();
+            if (files != null && files.length > 0) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        File desSubDir = new File(des, file.getName());
+                        desSubDir.mkdir();
+                        copyFile(file, desSubDir);
+                    } else {
+                        File desSubFile = new File(des, file.getName());
+                        copyFile(file, desSubFile);
+                    }
+                }
+            }
+        } else {
+            copyStream(new FileInputStream(src), new FileOutputStream(des));
+        }
     }
 
     public static void saveBitmapAsPng(File file, Bitmap bitmap) throws FileNotFoundException {
@@ -72,5 +98,22 @@ public class FileUtils {
         bitmap.compress(format, quality, new FileOutputStream(file));
     }
 
+    public static void copyFileFromAsset(String assetFile, String desFile) throws IOException {
+        copyFileFromAsset(assetFile, new File(desFile));
+    }
+
+    public static void copyFileFromAsset(String assetFile, File desfile) throws IOException {
+        AssetManager assetManager = Utils.mContext.getAssets();
+        String filenames[] = assetManager.list(assetFile);
+        if (filenames.length > 0) {
+            desfile.mkdir();
+            desfile.mkdirs();
+            for (String fileName : filenames) {
+                copyFileFromAsset(assetFile + "/" + fileName, new File(desfile, fileName));
+            }
+        } else {
+            copyStream(assetManager.open(assetFile), new FileOutputStream(desfile));
+        }
+    }
 
 }
