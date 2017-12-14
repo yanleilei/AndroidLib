@@ -30,7 +30,24 @@ public class FileUtils {
 
 
     public static void saveString(File file, String text, boolean append) throws IOException {
+        file = checkFile(file);
         copyStream(new ByteArrayInputStream(text.getBytes()), new FileOutputStream(file, append));
+    }
+
+    private static File checkFile(File file) {
+        if (!file.exists()) {
+            String path = file.getAbsolutePath();
+            if (path.contains("/")) {
+                int index = path.lastIndexOf("/");
+                String dir = path.substring(0, index);
+                String name = path.substring(index + 1, path.length());
+                File fileDir = new File(dir);
+                fileDir.mkdir();
+                fileDir.mkdirs();
+                file = new File(fileDir, name);
+            }
+        }
+        return file;
     }
 
     public static void saveString(String filepath, String text) throws IOException {
@@ -95,6 +112,7 @@ public class FileUtils {
     }
 
     public static void saveBitmapFile(File file, Bitmap bitmap, Bitmap.CompressFormat format, int quality) throws FileNotFoundException {
+        file = checkFile(file);
         bitmap.compress(format, quality, new FileOutputStream(file));
     }
 
