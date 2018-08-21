@@ -5,8 +5,7 @@ group = 'com.leilei'
 
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 27
 
     defaultConfig {
 
