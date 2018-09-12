@@ -18,14 +18,7 @@ import java.io.OutputStream;
 
 public class FileUtils {
     public static void copyStream(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        int len = 0;
-        while ((len = in.read(buffer)) != -1) {
-            out.write(buffer, 0, len);
-        }
-
-        in.close();
-        out.close();
+        copyStream(in, out, null);
     }
 
 
@@ -132,6 +125,27 @@ public class FileUtils {
         } else {
             copyStream(assetManager.open(assetFile), new FileOutputStream(desfile));
         }
+
+    }
+
+    public static void copyStream(InputStream in, OutputStream out, ProgressListener listener) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len = 0;
+        long total = 0;
+        while ((len = in.read(buffer)) != -1) {
+            out.write(buffer, 0, len);
+            total += len;
+            if (listener != null) {
+                listener.onProgress(total);
+            }
+        }
+        in.close();
+        out.close();
+    }
+
+    public interface ProgressListener {
+
+        void onProgress(float finishLength);
     }
 
 }
