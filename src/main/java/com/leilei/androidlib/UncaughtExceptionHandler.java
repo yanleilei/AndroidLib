@@ -8,13 +8,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -35,7 +30,7 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
     private String TAG = "UncaughtExceptionHandler";
 
     private static Context mContext;
-    private Map<String, String> infos = new HashMap<String, String>();
+    private Map<String, String> infos = new HashMap();
 
     //用于格式化日期,作为日志文件名的一部分
     private DateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
@@ -97,20 +92,21 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
         printWriter.close();
         String result = writer.toString();
         sb.append(result);
+        String message = sb.toString();
+        LogUtils.e(TAG, message);
         try {
             String time = formatter.format(new Date());
-            String fileName = "crash-" + time + ".html";
+            String fileName = "crash-" + time + ".txt";
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                ///这里修改了保存路径,如果不能保存到sdcard,则保存到data/data应用目录下
+                //这里修改了保存路径
                 String path = Environment.getExternalStorageDirectory().getPath() + "/" + EXCEPTION_PATH;
                 File dir = new File(path);
                 if (!dir.exists()) {
+                    dir.mkdir();
                     dir.mkdirs();
                 }
-                FileOutputStream fos = new FileOutputStream(path + fileName);
-                fos.write(sb.toString().getBytes());
-                //发送给开发人员
-                sendCrashLog2PM(path + fileName);
+                FileOutputStream fos = new FileOutputStream(new File(dir, fileName));
+                fos.write(message.getBytes());
                 fos.close();
             }
             return fileName;
@@ -120,39 +116,6 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
         return null;
     }
 
-    /**
-     * 目前只将log日志保存在sdcard 和输出到LogCat中，并未发送给后台。
-     * 如果需要发送到云端，可以考虑用第三发的工具类似bugly等等
-     */
-    private void sendCrashLog2PM(String fileName) {
-
-        FileInputStream fis = null;
-        BufferedReader reader = null;
-        String s = null;
-        try {
-            fis = new FileInputStream(fileName);
-            reader = new BufferedReader(new InputStreamReader(fis, "GBK"));
-            while (true) {
-                s = reader.readLine();
-                if (s == null) break;
-                //由于目前尚未确定以何种方式发送，所以先打出log日志。
-                LogUtils.e("info", s.toString());
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {   // 关闭流
-            try {
-                if (reader != null)
-                    reader.close();
-                if (fis != null)
-                    fis.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /**
      * 收集设备参数信息
