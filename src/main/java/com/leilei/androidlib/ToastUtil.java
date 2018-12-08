@@ -11,6 +11,14 @@ import android.widget.Toast;
  * Created by leilei on 2018/8/21.
  */
 public class ToastUtil {
+
+    private static Builder mDefaultBuilder;
+
+
+    public static void setDefaultBuilder(Builder builder) {
+        mDefaultBuilder = builder;
+    }
+
     public static void toastLong(String message) {
         toast(message, null, Toast.LENGTH_LONG);
     }
@@ -66,6 +74,9 @@ public class ToastUtil {
     public static void toast(String message, Builder builder, int time) {
         TextView textView = (TextView) View.inflate(Utils.mContext, R.layout.lib_toast_textview, null);
         textView.setText(message);
+        if (builder == null && mDefaultBuilder != null) {
+            builder = mDefaultBuilder;
+        }
         if (builder != null) {
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, builder.mTextSize);
             textView.setTextColor(builder.mTextColor);
